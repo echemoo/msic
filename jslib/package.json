@@ -1,0 +1,30 @@
+{
+  "name": "jslib",
+  "version": "0.0.1",
+  "description": "javascript common library",
+  "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/.bin/mocha -u bdd",
+    "index": "node index.js",
+    "testjs": "npm run index"
+  },
+  "keywords": [
+    "javascript",
+    "library"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/echemoo/jslib.git"
+  },
+  "author": "echemoo",
+  "license": "MIT",
+  "devDependencies": {
+    "chai": "~3.4.1",
+    "mocha": "~3.1.2",
+    "mochawesome": "~1.2.1",
+    "expect.js": "0.3.1",
+    "closure-util": "1.15.1"
+  },
+  "dependencies": {
+  }
+}
