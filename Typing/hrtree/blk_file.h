@@ -34,6 +34,31 @@ class BlockFile
     int get_num_of_blocks(){return number;}
 };
 
+class CachedBlockFile : public BlockFile
+{
+  public:
+    enum uses {free, used, fixed};
+    int ptr;            // current position in cache
+    int cachesize;      // the number of blocks kept in memory
+    int page_faults;
+    int* cache_cont;    // array of the indices of blocks that are in cache
+    uses* fuf_cont;     // indicator array that shows whether one cache block is free, used or fixed
+    int* LRU_indicator; // indicator that shows how old (unused) is a page in the cache
+    bool* dirty_indicator;  // indicator that shows if a page has been modified
+    char** cache;       // Cache
 
+    CachedBlockFile(char* name, int blength, int csize);
+    ~CachedBlockFile();
+
+    int next();
+    int in_cache(int index);    // liefert Pos. im Cache oder -1
+    bool read_block(Block b, int i);
+    bool write_block(Block b, int i);
+    bool fix_block(int i);
+    bool unfix_block(int i);
+    void unfix_all();
+    void set_cachesize(int s);
+    void flush();
+};
 
 #endif // __BLK_FILE
