@@ -181,3 +181,46 @@ int CachedBlockFile::next() {
   return false;
 }
 
+int CachedBlockFile::in_cache(int index) {
+  int i;
+  int ret_val = -1;
+
+  for (i = 0; i < cachesize; i++)
+    if (cache_cont[i] == index && fuf_cont[i] != free) {
+      LRU_indicator[i] = 0;
+      ret_val = i;
+    }
+    else if (fuf_cont[i] != free)
+      LRU_indicator[i]++;   // increase indicator for this block
+  return ret_val;
+}
+
+CachedBlockFile::CachedBlockFile(char* name, int blength, int csize) : BlockFile(name, blength) {
+  printf("CachedBlockFile Version 1.0\n");
+  int i;
+  ptr = 0;
+
+  if (csize >= 0)
+    cachesize = csize;
+  else
+    error("Cache size cannot be negative", TRUE);
+
+  cache_cont = new int[cachesize];
+  fuf_cont = new uses[cachesize];
+  LRU_indicator = new int[cachesize];
+  dirty_indicator = new bool[cachesize];
+
+  for (i = 0; i < cachesize; i++) {
+    cache_cont[i] = 0;
+    fuf_cont[i] = free;
+    LRU_indicator[i] = 0;
+    dirty_indicator[i] = false;
+  }
+
+  cache = new char*[cachesize];
+  for (i = 0; i < cachesize; i++)
+    cache[i] = new char[blength];
+
+  page_faults = 0;
+}
+
