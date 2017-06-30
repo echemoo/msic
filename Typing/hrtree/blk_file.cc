@@ -224,3 +224,16 @@ CachedBlockFile::CachedBlockFile(char* name, int blength, int csize) : BlockFile
   page_faults = 0;
 }
 
+CachedBlockFile::~CachedBlockFile(){
+  flush();
+  delete[] cache_cont;
+  delete[] fuf_cont;
+  delete[] LRU_indicator;
+  delete[] dirty_indicator;
+
+  for (int i = 0; i < cachesize; i++)
+    delete[] cache[i];
+
+  delete[] cache;
+}
+
