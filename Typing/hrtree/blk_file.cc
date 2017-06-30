@@ -237,3 +237,33 @@ CachedBlockFile::~CachedBlockFile(){
   delete[] cache;
 }
 
+bool CachedBlockFile::read_block(Block block, int index) {
+  int c_ind;
+
+  index++;
+
+  if (index <= get_num_of_blocks() && index > 0) {
+    if ((c_ind = in_cache(index)) >= 0)
+      memcpy(block, cache[c_ind], get_blocklength());
+    else {
+      page_faults++;
+      c_ind = next();
+      if (c_ind >= 0) {
+        BlockFile::read_block(cache[c_ind], index - 1);     // ext. Num.
+        cache_cont[c_ind] = index;
+        fuf_cont[c_ind] = used;
+        LRU_indicator[c_ind] = 0;
+        memcpy(block, cache[c_ind], get_blocklength());
+      }
+      else  // this happens when (i)caches size=0 (ii)all the blocks are pinned
+        BlockFile::read_block(block, index - 1);    // read-though (ext. Num.) without caching
+    }
+    return TRUE;
+  }
+  else {
+    printf("The requested block %d is illegal", index - 1);
+    error("\n", true);
+    return FALSE;
+  }
+}
+
