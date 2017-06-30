@@ -11,7 +11,7 @@ int BlockFile::fread_number(){
   return *((int*)ca);
 }
 
-BlockFile::BlockFile(const char* name, int b_length){
+BlockFile::BlockFile(const char* name, int b_length) {
   char* buffer;
   int l;
 
@@ -21,7 +21,7 @@ BlockFile::BlockFile(const char* name, int b_length){
 
   number = 0;       // number is the # of blocks stored in a file
 
-  if((fp=fopen(name,"rb+")) != 0){
+  if((fp = fopen(name, "rb+")) != 0) {
     new_flag = FALSE;
     blocklength = fread_number();
     number = fread_number();
@@ -58,7 +58,7 @@ void BlockFile::read_header(char* buffer){
   fseek(fp, BFHEAD_LENGTH, SEEK_SET);
   get_bytes(buffer, blocklength - BFHEAD_LENGTH);
 
-  if (number < 1){
+  if (number < 1) {
     fseek(fp, 0, SEEK_SET);
     act_block = 0;
   }
@@ -69,7 +69,7 @@ void BlockFile::read_header(char* buffer){
 void BlockFile::set_header(char* header){
   fseek(fp, BFHEAD_LENGTH, SEEK_SET);
   put_bytes(header, blocklength - BFHEAD_LENGTH);
-  if (number < 1){
+  if (number < 1) {
     fseek(fp, 0, SEEK_SET);
     act_block = 0;
   }
@@ -77,7 +77,7 @@ void BlockFile::set_header(char* header){
     act_block = 1;
 }
 
-bool BlockFile::read_block(Block b, int pos){ // read block data located at pos position.
+bool BlockFile::read_block(Block b, int pos) { // read block data located at pos position.
   pos++;    // external block to internal block
   if (pos <= number && pos > 0)
     seek_block(pos);
@@ -97,7 +97,7 @@ bool BlockFile::read_block(Block b, int pos){ // read block data located at pos 
   return TRUE;
 }
 
-bool BlockFile::write_block(Block block, int pos){
+bool BlockFile::write_block(Block block, int pos) {
   pos++;    // external # to interal #
 
   if (pos <= number && pos > 0)
@@ -125,5 +125,59 @@ int BlockFile::append_block(Block block) {
   fseek(fp, -blocklength, SEEK_END);
 
   return (act_block = number) - 1;
+}
+
+bool BlockFile::delete_last_blocks(int num) {
+  if (num > number)     // delete last num blocks
+    return FALSE;
+
+  number -= num;
+  fseek(fp, sizeof(int), SEEK_SET);
+  fwrite_number(number);
+  fseek(fp, 0, SEEK_SET);
+  act_block = 0;
+
+  return TRUE;
+}
+
+int CachedBlockFile::next() {
+  int ret_val, tmp;
+
+  if (cachesize == 0) return -1;
+  else {
+    if (fuf_cont[ptr] == free) {    // ptr points to a cache page
+      ret_val = ptr++;
+      ptr = ptr % cachesize;
+      return ret_val;
+    }
+    else {
+      tmp = (ptr + 1) % cachesize;
+
+      while (tmp != ptr && fuf_cont[tmp] != free)
+        tmp = (tmp + 1) % cachesize;
+
+      if (ptr == tmp) {
+        int lru_index = 0;  // the index of the victim page
+
+        for (int i = 1; i < cachesize; i++)
+          if (LRU_indicator[i] > LRU_indicator[lru_index])
+            lru_index = i;  /* the replacement policy is least recently used. pick
+                               out the page with the maximum ilde time counter */
+        ptr = lru_index;
+
+        if (dirty_indicator[ptr] == true)
+          BlockFile::write_block(cache[ptr], cache_cont[ptr] - 1);
+
+        fuf_cont[ptr] = free;
+        dirty_indicator[ptr] = false;
+        ret_val = ptr++;
+        ptr = ptr % cachesize;
+      }
+      else  // a free block is found
+        return tmp;
+    }
+  }
+
+  return false;
 }
 
