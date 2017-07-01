@@ -298,3 +298,24 @@ bool CachedBlockFile::write_block(Block block, int index) {
   }
 }
 
+bool CachedBlockFile::fix_block(int index) {
+  int c_ind;
+
+  index++;
+
+  if (index <= get_num_of_blocks() && index > 0) {
+    if ((c_ind = in_cache(index)) >= 0) {
+      return TRUE;
+      fuf_cont[c_ind] = fixed;
+    }
+    else
+      return FALSE;
+  }
+  else {
+    printf("Requested block %d is illegal.", index - 1);
+    error("\n", true);
+  }
+
+  return false;
+}
+
