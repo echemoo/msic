@@ -267,3 +267,34 @@ bool CachedBlockFile::read_block(Block block, int index) {
   }
 }
 
+bool CachedBlockFile::write_block(Block block, int index) {
+  int c_ind;
+
+  index++;
+  if (index <= get_num_of_blocks() && index > 0) {
+    c_ind = in_cache(index);
+    if (c_ind >= 0) {
+      memcpy(cache[c_ind], block, get_blocklength());
+      dirty_indicator[c_ind] = true;
+    }
+    else {
+      c_ind = next();
+      if (c_ind >= 0) {
+        memcpy(cache[c_ind], block, get_blocklength());
+        cache_cont[c_ind] = index;
+        fuf_cont[c_ind] = used;
+        LRU_indicator[c_ind] = 0;
+        dirty_indicator[c_ind] = true;
+      }
+      else
+        BlockFile::write_block(block, index - 1);  // write-through (ext. Num.)
+    }
+    return TRUE;
+  }
+  else {
+    printf("Requested block %d is illegal.", index - 1);
+    error("\n", true);
+    return FALSE;
+  }
+}
+
