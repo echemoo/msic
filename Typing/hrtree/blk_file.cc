@@ -319,3 +319,20 @@ bool CachedBlockFile::fix_block(int index) {
   return false;
 }
 
+bool CachedBlockFile::unfix_block(int index) {
+  int i;
+
+  i = 0;
+  index++;
+  if (index <= get_num_of_blocks() && index > 0) {
+    while (i < cachesize && (cache_cont[i] != index || fuf_cont[i] == free))
+      i++;
+    if (i != cachesize)
+      fuf_cont[i] = used;
+
+    return TRUE;
+  }
+  else
+    return FALSE;
+}
+
