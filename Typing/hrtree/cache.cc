@@ -31,3 +31,15 @@ Cache::Cache(int csize, int blength) {
   page_faults = 0;
 }
 
+Cache::~Cache() {
+  delete[] cache_cont;
+  delete[] fuf_cont;
+  delete[] LRU_indicator;
+  delete[] cache_tree;
+  delete[] dirty_indicator;
+
+  for (int i = 0; i < cachesize; i++)
+    delete[] cache[i];
+  delete[] cache;
+}
+
