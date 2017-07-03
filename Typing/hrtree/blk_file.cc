@@ -382,3 +382,10 @@ void CachedBlockFile::set_cachesize(int size) {
     error("Cache size cannot be negative\n", TRUE);
 }
 
+void CachedBlockFile::flush() {
+  int i;
+
+  for (i = 0; i < cachesize; i++)
+    if (fuf_cont[i] != free && dirty_indicator[i])
+      BlockFile::write_block(cache[i], cache_cont[i] - 1);  // ext. Num.
+}
