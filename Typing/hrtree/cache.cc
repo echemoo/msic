@@ -93,3 +93,34 @@ int Cache::in_cache(int index, Cacheable *rt) {
   return ret_val;
 }
 
+bool Cache::read_block(Block block, int index, Cacheable *rt) {
+  int c_ind;
+
+  index++;
+  if (index <= rt -> file -> get_num_of_blocks() && index > 0) {
+    if ((c_ind = in_cache(index, rt)) >= 0)
+      memcpy(block, cache[c_ind], blocklength);
+    else {
+      page_faults++;
+      c_ind = next();
+      if (c_ind >= 0) {
+        rt -> file -> read_block(cache[c_ind], index - 1);
+        cache_cont[c_ind] = index;
+        cache_tree[c_ind] = rt;
+        fuf_cont[c_ind] = used;
+        LRU_indicator[c_ind] = 0;
+        memcpy(block, cache[c_ind], blocklength);
+      }
+      else
+        rt -> file -> read_block(block, index - 1);     // read-through (ext. Num.)
+    }
+    return TRUE;
+  }
+  else {
+    printf("Requested block %d is illegal.", index - 1);
+    error("\n", true);
+  }
+
+  return false;
+}
+
