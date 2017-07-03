@@ -80,3 +80,16 @@ int Cache::next() {
   }
 }
 
+int Cache::in_cache(int index, Cacheable *rt) {
+  int i;
+  int ret_val = -1;
+  for (i = 0; i < cachesize; i++)
+    if ((cache_cont[i] == index) && (cache_tree[i] == rt) && (fuf_cont[i] != free)) {
+      LRU_indicator[i] = 0;
+      ret_val = i;
+    }
+    else if (fuf_cont[i] != free)
+      LRU_indicator[i]++;
+  return ret_val;
+}
+
