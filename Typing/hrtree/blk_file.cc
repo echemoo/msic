@@ -344,3 +344,41 @@ void CachedBlockFile::unfix_all() {
       fuf_cont[i] = used;
 }
 
+void CachedBlockFile::set_cachesize(int size) {
+  int i;
+
+  if (size >= 0) {
+    ptr = 0;
+    flush();
+
+    for(i = 0; i < cachesize; i++)
+      delete[] cache[i];
+
+    delete[] cache;
+
+    delete[] cache_cont;
+    delete[] fuf_cont;
+    delete[] dirty_indicator;
+    delete[] LRU_indicator;
+
+    cachesize = size;
+    cache_cont = new int[cachesize];
+    fuf_cont = new uses[cachesize];
+    LRU_indicator = new int[cachesize];
+    dirty_indicator = new bool[cachesize];
+
+    for (i = 0; i < cachesize; i++) {
+      cache_cont[i] = 0;
+      fuf_cont[i] = free;
+      LRU_indicator[i] = 0;
+      dirty_indicator[i] = false;
+    }
+
+    cache = new char*[cachesize];
+    for (i = 0; i < cachesize; i++)
+      cache[i] = new char[get_blocklength()];
+  }
+  else
+    error("Cache size cannot be negative\n", TRUE);
+}
+
