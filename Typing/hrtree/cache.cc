@@ -124,3 +124,36 @@ bool Cache::read_block(Block block, int index, Cacheable *rt) {
   return false;
 }
 
+bool Cache::write_block(Block block, int index, Cacheable *rt) {
+  int c_ind;
+
+  index++;
+  if (index <= rt -> file -> get_num_of_blocks() && index > 0) {
+    c_ind = in_cache(index, rt);
+    if (c_ind >= 0) {
+      memcpy(cache[c_ind], block, blocklength);
+      dirty_indicator[c_ind] = true;
+    }
+    else {
+      c_ind = next();
+      if (c_ind >= 0) {
+        memcpy(cache[c_ind], block, blocklength);
+        cache_cont[c_ind] = index;
+        cache_tree[c_ind] = rt;
+        fuf_cont[c_ind] = used;
+        LRU_indicator[c_ind] = 0;
+        dirty_indicator[c_ind] = true;
+      }
+      else
+        rt -> file -> write_block(block, index - 1);
+    }
+    return TRUE;
+  }
+  else {
+    printf("Requested block %d is illegal.", index - 1);
+    error("\n", true);
+  }
+
+  return false;
+}
+
