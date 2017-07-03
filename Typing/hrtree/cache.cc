@@ -43,3 +43,40 @@ Cache::~Cache() {
   delete[] cache;
 }
 
+int Cache::next() {
+  int ret_val, tmp;
+
+  if (cachesize == 0) return -1;
+  else {
+    if (fuf_cont[ptr] == free) {
+      ret_val = ptr++;
+      ptr = ptr % cachesize;
+      return ret_val;
+    }
+    else {
+      tmp = (ptr + 1) % cachesize;
+      while (tmp != ptr && fuf_cont[tmp] != free)
+        tmp = (tmp + 1) % cachesize;
+
+      if (ptr == tmp) {
+        int lru_index = 0;
+        for (int i = 0; i < cachesize; i++)
+          if (LRU_indicator[i] > LRU_indicator[lru_index])
+            lru_index = i;
+
+        ptr = lru_index;
+        if (dirty_indicator[ptr])
+          cache_tree[ptr] -> file -> write_block(cache[ptr], cache_cont[ptr] - 1);
+        fuf_cont[ptr] = free;
+        dirty_indicator[ptr] = false;
+        ret_val = ptr++;
+        ptr = ptr % cachesize;
+
+        return ret_val;
+      }
+      else
+        return tmp;
+    }
+  }
+}
+
