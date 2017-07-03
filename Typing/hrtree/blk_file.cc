@@ -336,3 +336,11 @@ bool CachedBlockFile::unfix_block(int index) {
     return FALSE;
 }
 
+void CachedBlockFile::unfix_all() {
+  int i;
+
+  for (i = 0; i < cachesize; i++)
+    if (fuf_cont[i] == fixed)
+      fuf_cont[i] = used;
+}
+
