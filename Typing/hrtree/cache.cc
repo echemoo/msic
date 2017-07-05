@@ -157,3 +157,52 @@ bool Cache::write_block(Block block, int index, Cacheable *rt) {
   return false;
 }
 
+bool Cache::fix_block(int index, Cacheable *rt) {
+  int c_ind;
+
+  index++;
+  if (index <= rt -> file -> get_num_of_blocks() && index > 0) {
+    if ((c_ind = in_cache(index, rt)) >= 0) {
+      fuf_cont[c_ind] = fixed;
+      return true;
+    }
+    else
+      return false;
+  }
+  else {
+    printf("Requested block %d is illegal.", index - 1);
+    error("\n", true);
+  }
+
+  return false;
+}
+
+bool Cache::unfix_block(int index, Cacheable *rt) {
+  int i;
+
+  i = 0;
+  index++;
+  if (index <= rt -> file -> get_num_of_blocks() && index > 0) {
+    while (i < cachesize && (cache_cont[i] != index || fuf_cont[i] == free))
+      i++;
+    if (i != cachesize)
+      fuf_cont[i] = used;
+    return TRUE;
+  }
+  else {
+    printf("Requested block %d is illegal.", index - 1);
+    error("\n", true);
+  }
+
+  return false;
+}
+
+void Cache::unfix_all() {
+  int i;
+
+  for (i = 0; i < cachesize; i++)
+    if (fuf_cont[i] == fixed)
+      fuf_cont[i] = used;
+}
+
+
