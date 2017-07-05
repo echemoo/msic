@@ -205,4 +205,51 @@ void Cache::unfix_all() {
       fuf_cont[i] = used;
 }
 
+void Cache::set_cachesize(int size) {
+  int i;
 
+  if (size >= 0) {
+    ptr = 0;
+    flush();
+    for (i = 0; i < cachesize; i++)
+      delete[] cache[i];
+    delete[] cache;
+
+    delete[] cache_cont;
+    delete[] cache_tree;
+    delete[] fuf_cont;
+    delete[] LRU_indicator;
+    delete[] dirty_indicator;
+
+    cachesize = size;
+    cache_cont = new int[cachesize];
+    cache_tree = new Cacheable*[cachesize];
+    LRU_indicator = new int[cachesize];
+    fuf_cont = new uses[cachesize];
+    dirty_indicator = new bool[cachesize];
+
+    for (i = 0; i < cachesize; i++) {
+      cache_cont[i] = 0;
+      cache_tree[i] = NULL;
+      fuf_cont[i] = free;
+      LRU_indicator[i] = 0;
+      dirty_indicator[i] = 0;
+    }
+
+    cache = new char*[cachesize];
+    for (i = 0; i < cachesize; i++)
+      cache[i] = new char[blocklength];
+  }
+  else
+    error("Cache size cannot be negative\n", TRUE);
+}
+
+void Cache::flush() {
+  int i;
+
+  for (i = 0; i < cachesize; i++) {
+    if (fuf_cont[i] != free && dirty_indicator[i])
+      cache_tree[i] -> file -> write_block(cache[i], cache_cont[i] - 1);    // ext. Num.
+    fuf_cont[i] = free;
+  }
+}
