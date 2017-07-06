@@ -10,3 +10,9 @@ int existsInList(int n, vector<int>& List) {
   return -1;
 }
 
+void eraseElement(int n, vector<int>& List) {
+  int index = existsInList(n, List);
+  if (index != -1)  // if n does exist in L
+    List.erase(List.begin() + index);
+}
+
